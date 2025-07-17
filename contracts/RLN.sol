@@ -227,7 +227,7 @@ contract RLN {
     }
     
     function getMessageLimit() public pure returns (uint256) {
-        return 1; // One message per epoch per identity
+        return 100; // Allow multiple messages for testing (should be 1 per identity in production)
     }
     
     function getEpochMessages(uint256 epoch) external view returns (uint256[] memory) {

@@ -100,7 +100,7 @@ describe("RLN Anti-Spam System", function () {
             this.timeout(30000); // Allow time for proof generation
             
             const signal = "Hello, world!";
-            const messageId = 1;
+            const messageId = 0;
             
             const proof = await rln.generateProof(
                 0, // identity1 index
@@ -120,7 +120,7 @@ describe("RLN Anti-Spam System", function () {
             this.timeout(30000);
             
             const signal = "Test message";
-            const messageId = 2;
+            const messageId = 0;
             
             const proof = await rln.generateProof(
                 0, // identity1 index
@@ -137,7 +137,7 @@ describe("RLN Anti-Spam System", function () {
             this.timeout(30000);
             
             const signal = "On-chain message";
-            const messageId = 3;
+            const messageId = 0;
             
             const proof = await rln.generateProof(
                 0, // identity1 index
@@ -160,7 +160,7 @@ describe("RLN Anti-Spam System", function () {
             );
             
             const receipt = await tx.wait();
-            const event = receipt.events.find(e => e.event === "MessagePosted");
+            const event = receipt.logs.find(log => log.eventName === "MessagePosted");
             
             expect(event).to.not.be.undefined;
             expect(event.args.nullifier).to.equal(publicSignals.nullifier);
@@ -170,7 +170,7 @@ describe("RLN Anti-Spam System", function () {
             this.timeout(30000);
             
             const signal = "Duplicate test";
-            const messageId = 4;
+            const messageId = 0;
             
             const proof = await rln.generateProof(
                 0, // identity1 index
@@ -220,7 +220,7 @@ describe("RLN Anti-Spam System", function () {
                 1, // identity2 index
                 "First message",
                 externalNullifier,
-                5
+                0
             );
             
             const solidityProof1 = proof1.toSolidityProof();
@@ -249,7 +249,7 @@ describe("RLN Anti-Spam System", function () {
                 2, // identity3 index
                 "Epoch tracking test",
                 externalNullifier,
-                6
+                0
             );
             
             const solidityProof = proof.toSolidityProof();
@@ -313,7 +313,7 @@ describe("RLN Anti-Spam System", function () {
                 0, // identity1 index
                 "Gas test message",
                 externalNullifier,
-                100
+                0
             );
             
             const solidityProof = proof.toSolidityProof();
@@ -347,7 +347,7 @@ describe("RLN Anti-Spam System", function () {
             
             for (let i = 0; i < testCount; i++) {
                 const randomSignal = `Random message ${i} ${Math.random()}`;
-                const randomMessageId = 1000 + i;
+                const randomMessageId = 0;
                 
                 try {
                     const proof = await rln.generateProof(
@@ -378,7 +378,7 @@ describe("RLN Anti-Spam System", function () {
                 0, // identity1 index
                 "Security test",
                 externalNullifier,
-                200
+                0
             );
             
             const solidityProof = proof.toSolidityProof();
@@ -411,7 +411,7 @@ describe("RLN Anti-Spam System", function () {
                 0, // identity1 index
                 "Wrong nullifier test",
                 externalNullifier,
-                201
+                0
             );
             
             const solidityProof = proof.toSolidityProof();
@@ -457,7 +457,7 @@ describe("RLN Anti-Spam System", function () {
                 0, // identity1 index
                 "Performance test message",
                 externalNullifier,
-                100
+                0
             );
             const endTime = performance.now();
             
