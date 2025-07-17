@@ -1,0 +1,47 @@
+{
+  "name": "rln-anti-spam",
+  "version": "1.0.0",
+  "description": "Rate-Limited Nullifier (RLN) Anti-Spam Library with Zero-Knowledge Proofs",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx hardhat test",
+    "compile": "node scripts/compile.js",
+    "deploy": "npx hardhat run scripts/deploy.js",
+    "build:sdk": "webpack --mode production",
+    "build:wasm": "node scripts/build-wasm.js",
+    "lint": "eslint . --ext .js,.ts",
+    "typecheck": "tsc --noEmit",
+    "demo": "node cli/demo.js"
+  },
+  "keywords": [
+    "rln",
+    "rate-limiting",
+    "nullifier",
+    "zksnark",
+    "anti-spam",
+    "groth16",
+    "circom"
+  ],
+  "author": "",
+  "license": "MIT",
+  "type": "commonjs",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^6.0.0",
+    "@types/node": "^24.0.14",
+    "@typescript-eslint/eslint-plugin": "^8.37.0",
+    "@typescript-eslint/parser": "^8.37.0",
+    "eslint": "^9.31.0",
+    "hardhat": "^2.25.0",
+    "prettier": "^3.6.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "webpack": "^5.100.2",
+    "webpack-cli": "^6.0.1"
+  },
+  "dependencies": {
+    "circomlib": "^2.0.5",
+    "circomlibjs": "^0.1.7",
+    "commander": "^14.0.0",
+    "snarkjs": "^0.7.5"
+  }
+}
