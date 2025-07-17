@@ -10,6 +10,18 @@ interface IVerifier {
     ) external view returns (bool);
 }
 
+// Mock verifier for testing
+contract MockVerifier is IVerifier {
+    function verifyProof(
+        uint[2] memory,
+        uint[2][2] memory,
+        uint[2] memory,
+        uint[5] memory
+    ) external pure override returns (bool) {
+        return true; // Always return true for testing
+    }
+}
+
 contract RLN {
     IVerifier public immutable verifier;
     
