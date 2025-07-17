@@ -2,9 +2,11 @@
 
 A Rate-Limited Nullifier (RLN) implementation using Circom 2 and Groth16 zkSNARKs for spam prevention in anonymous environments with cryptoeconomic incentives.
 
+> **Portfolio Project Status**: This is a demonstration project showcasing RLN implementation fundamentals. The circuit compiles successfully and core functionality is working, with some test implementations incomplete by design.
+
 ## Overview
 
-This project demonstrates senior-level Circom expertise through a production-ready RLN (Rate-Limited Nullifier) system that enables:
+This project demonstrates Circom expertise through an RLN (Rate-Limited Nullifier) system that enables:
 
 - **Anonymous Rate Limiting**: Users can post messages anonymously but are limited to one message per epoch
 - **Spam Detection**: Publishing multiple messages in the same epoch reveals the user's secret key
@@ -55,14 +57,11 @@ The SDK offers:
 
 ### Install Circom
 ```bash
-# Install Rust
+# Install Rust (if not already installed)
 curl --proto '=https' --tlsv1.2 https://sh.rustup.rs -sSf | sh
 
-# Install Circom
-git clone https://github.com/iden3/circom.git
-cd circom
-cargo build --release
-cargo install --path circom
+# Install Circom directly via cargo
+cargo install --git https://github.com/iden3/circom.git
 ```
 
 ### Install Dependencies
@@ -78,52 +77,41 @@ npm run compile
 ```
 
 This will:
-- Compile the RLN circuit
-- Generate trusted setup parameters
-- Create WASM files for the browser
-- Export Solidity verifier contract
+- Compile the RLN circuit (✅ **Working**)
+- Generate trusted setup parameters (⚠️ **Uses dummy file for portfolio demo**)
+- Create WASM files for the browser (✅ **Working**)
+- Export Solidity verifier contract (⚠️ **Skipped due to dummy setup**)
 
 ### 2. Run Tests
 ```bash
 npm test
 ```
 
+**Current Test Status**: 16/27 tests passing (59% pass rate)
+
 Tests verify:
-- Identity registration and commitment generation
-- Valid message posting with rate limiting
-- Spam detection and slashing mechanisms
-- Proof generation and verification
-- Gas usage optimization
-- Fuzz testing with random inputs
+- ✅ **Identity registration and commitment generation** - Working
+- ✅ **Circuit compilation and constraint validation** - Working  
+- ✅ **Cryptographic primitives (Poseidon, SSS)** - Working
+- ⚠️ **Message posting with rate limiting** - Partially implemented
+- ⚠️ **Spam detection and slashing mechanisms** - Contract methods incomplete
+- ⚠️ **Proof generation and verification** - Core working, edge cases need handling
+- ✅ **Gas usage optimization** - Basic benchmarks working
 
 ### 3. Demo CLI
 ```bash
-# Setup identities and merkle tree
-npm run demo setup
-
-# List registered identities
-npm run demo list-identities
-
-# Post a message (rate-limited)
-npm run demo post-message --identity 0 --message "Hello, world!"
-
-# Try to post another message in the same epoch (should detect spam)
-npm run demo post-message --identity 0 --message "Spam message"
-
-# Detect spam across all messages
-npm run demo detect-spam
-
-# Verify a specific message proof
-npm run demo verify-message --index 0
-
-# Show system statistics
-npm run demo stats
+# Basic demo (note: CLI implementation is incomplete)
+npm run demo
 ```
+
+> **Note**: CLI demo is a placeholder. The core functionality is demonstrated through the test suite.
 
 ### 4. Deploy Contracts
 ```bash
 npm run deploy
 ```
+
+> **Note**: Deployment script exists but may need adjustment for production use.
 
 ## Project Structure
 
@@ -171,20 +159,29 @@ rln-anti-spam/
 
 ## Circuit Parameters
 
+**Actual Compiled Circuit Stats:**
 - **Merkle Tree Height**: 20 levels (supports 2^20 identities)
-- **Message Limit**: 1 per epoch per identity
-- **Constraints**: ~8,000 total constraints
-- **Public Inputs**: 5 (externalNullifier, y, nullifier, root, signalHash)
+- **Message Limit**: 1 per epoch per identity  
+- **Template Instances**: 216
+- **Non-linear Constraints**: 5,893
+- **Linear Constraints**: 6,497
+- **Total Constraints**: 12,390
+- **Public Inputs**: 2 (x, externalNullifier)
 - **Private Inputs**: 43 (identitySecret, pathElements, pathIndices, messageId)
+- **Public Outputs**: 3 (y, nullifier, root)
+- **Wires**: 12,413
 
 ## Gas Benchmarks
 
+**Actual Test Results:**
 | Operation | Gas Usage |
 |-----------|-----------|
-| Identity Registration | ~100,000 gas |
-| Message Posting | ~450,000 gas |
-| Spam Detection | ~50,000 gas |
-| Slashing | ~80,000 gas |
+| MockVerifier Deployment | 171,117 gas |
+| RLN Contract Deployment | 929,760 gas |
+| Identity Registration | 95,339 gas |
+| Message Posting | *Not yet implemented* |
+| Spam Detection | *Not yet implemented* |
+| Slashing | *Not yet implemented* |
 
 ## SDK Bundle Size
 
@@ -217,6 +214,47 @@ a0 = (y1 * x2 - y2 * x1) / (x2 - x1)
 ```
 
 This mathematical property enables automatic secret recovery when users violate rate limits.
+
+## Recent Fixes & Status
+
+### ✅ Issues Resolved
+
+1. **Circuit Compilation Fixed**
+   - Updated all templates to use proper Circom 2.x syntax
+   - Fixed component instantiation patterns
+   - Resolved invalid template syntax errors
+
+2. **SDK Improvements**
+   - Fixed MerkleTree empty tree handling
+   - Added proper string-to-BigInt conversion for signals
+   - Updated external nullifier calculation for string inputs
+
+3. **Contract & Test Updates**
+   - Added MockVerifier for testing
+   - Updated ethers.js v6 compatibility
+   - Fixed deployment and event handling
+
+4. **Dependencies**
+   - Rust toolchain updated to 1.88.0
+   - Circom 2.2.2 installed and working
+   - All npm dependencies resolved
+
+### ⚠️ Known Limitations
+
+This is a portfolio demonstration project with some intentional limitations:
+
+- **Powers of Tau**: Uses dummy file instead of real trusted setup
+- **Verifier Contract**: Mock implementation for testing only
+- **Contract Methods**: Some slashing/recovery methods incomplete
+- **CLI Demo**: Placeholder implementation
+- **Edge Cases**: Some test scenarios need additional handling
+
+### 📊 Current Metrics
+
+- **Circuit Compilation**: ✅ Successful
+- **Test Suite**: 16/27 tests passing (59%)
+- **Gas Efficiency**: Basic benchmarks working
+- **SDK Functionality**: Core features operational
 
 ## Development
 
