@@ -104,10 +104,15 @@ class MerkleTree {
             const currentLevel = this.layers[level];
             const nextLevel = [];
             
-            for (let i = 0; i < currentLevel.length; i += 2) {
-                const left = currentLevel[i];
-                const right = i + 1 < currentLevel.length ? currentLevel[i + 1] : this.zero_values[level];
-                nextLevel.push(this.hasher([left, right]));
+            // Handle empty level case
+            if (currentLevel.length === 0) {
+                nextLevel.push(this.zero_values[level + 1]);
+            } else {
+                for (let i = 0; i < currentLevel.length; i += 2) {
+                    const left = currentLevel[i];
+                    const right = i + 1 < currentLevel.length ? currentLevel[i + 1] : this.zero_values[level];
+                    nextLevel.push(this.hasher([left, right]));
+                }
             }
             
             this.layers.push(nextLevel);
@@ -210,8 +215,11 @@ class RLN {
             throw new Error('Identity not found');
         }
         
-        // Hash the signal
-        const signalHash = this.poseidon.F.toObject(this.poseidon([signal]));
+        // Hash the signal (convert string to bytes and hash)
+        const signalBytes = typeof signal === 'string' 
+            ? [...Buffer.from(signal, 'utf8').slice(0, 31)]
+            : [signal];
+        const signalHash = this.poseidon.F.toObject(this.poseidon(signalBytes));
         
         // Generate share
         const share = await identity.identity.generateShare(
@@ -260,7 +268,10 @@ class RLN {
     async calculateExternalNullifier(epoch, appId) {
         if (!this.poseidon) await this.init();
         
-        return this.poseidon.F.toObject(this.poseidon([epoch, appId])).toString();
+        // Convert string appId to BigInt by hashing it first
+        const appIdHash = this.poseidon.F.toObject(this.poseidon([...Buffer.from(appId, 'utf8').slice(0, 31)]));
+        
+        return this.poseidon.F.toObject(this.poseidon([epoch, appIdHash])).toString();
     }
     
     // Get current epoch
