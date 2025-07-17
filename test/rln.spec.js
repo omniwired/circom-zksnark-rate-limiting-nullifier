@@ -430,4 +430,62 @@ describe("RLN Anti-Spam System", function () {
             ).to.be.revertedWithCustomError(rlnContract, "InvalidProof");
         });
     });
+    
+    describe("Performance Benchmarks", function() {
+        it("Should measure identity commitment generation time", async function() {
+            const identity = new RLNIdentity();
+            
+            const startTime = performance.now();
+            await identity.getCommitment();
+            const endTime = performance.now();
+            
+            const duration = endTime - startTime;
+            console.log(`⏱️ Identity commitment generation: ${duration.toFixed(2)}ms`);
+            
+            // Just making sure it's reasonably fast for a demo
+            expect(duration).to.be.lessThan(1000); // Should be under 1 second
+        });
+        
+        it("Should measure basic proof generation time", async function() {
+            const externalNullifier = await rln.calculateExternalNullifier(
+                rln.getCurrentEpoch(),
+                APP_ID
+            );
+            
+            const startTime = performance.now();
+            const proof = await rln.generateProof(
+                0, // identity1 index
+                "Performance test message",
+                externalNullifier,
+                100
+            );
+            const endTime = performance.now();
+            
+            const duration = endTime - startTime;
+            console.log(`⏱️ Proof generation: ${duration.toFixed(2)}ms`);
+            
+            // Make sure we actually got a proof
+            expect(proof).to.not.be.undefined;
+            expect(proof.proof).to.not.be.undefined;
+            expect(proof.publicSignals).to.not.be.undefined;
+            
+            // Proof generation should be reasonable for a demo
+            expect(duration).to.be.lessThan(10000); // Should be under 10 seconds
+        });
+        
+        it("Should log circuit constraint information", async function() {
+            // This doesn't really test anything, just logs info we gathered
+            console.log(`📊 Circuit Stats:`);
+            console.log(`   Non-linear constraints: 5,893`);
+            console.log(`   Linear constraints: 6,497`);
+            console.log(`   Total constraints: 12,390`);
+            console.log(`   Template instances: 216`);
+            console.log(`   Wires: 12,413`);
+            console.log(`   Merkle tree depth: 20`);
+            console.log(`   Max identities: ${Math.pow(2, 20).toLocaleString()}`);
+            
+            // Just a dummy assertion to make it a valid test
+            expect(true).to.be.true;
+        });
+    });
 });

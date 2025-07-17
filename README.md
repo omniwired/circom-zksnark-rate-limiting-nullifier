@@ -256,6 +256,132 @@ This is a portfolio demonstration project with some intentional limitations:
 - **Gas Efficiency**: Basic benchmarks working
 - **SDK Functionality**: Core features operational
 
+## 📊 Performance & Benchmarks
+
+### Current Performance (What I've Measured So Far)
+
+**Circuit Compilation Times:**
+- Circuit compilation: ~2-3 seconds (on M1 Mac)
+- Constraint generation: 12,390 total constraints
+- WASM generation: ~1 second
+
+**Test Performance:**
+- Identity commitment generation: ~10ms
+- Basic proof generation: Haven't timed this yet (TODO!)
+- Merkle tree operations: Pretty fast, but should measure properly
+
+**Gas Usage (From Test Results):**
+- Contract deployment: 929,760 gas (seems high?)
+- Identity registration: 95,339 gas (reasonable)
+- Message posting: Not implemented yet
+
+### Performance Ideas for Later
+
+Things I want to measure when I have more time:
+- [ ] Proof generation time across different message sizes
+- [ ] Memory usage during proof generation
+- [ ] Constraint count optimization opportunities
+- [ ] Browser vs Node.js performance differences
+- [ ] Batch proof generation efficiency
+
+> **Note**: These are just rough measurements from my development machine. Real benchmarking would need proper testing infrastructure!
+
+## 🔒 Security Analysis
+
+### What I Think I Got Right
+
+**Cryptographic Foundations:**
+- Using Poseidon hash (designed for zk-SNARKs)
+- Proper Shamir's Secret Sharing implementation
+- Merkle tree membership proofs
+- Nullifier uniqueness enforcement
+
+**Circuit Security:**
+- Input validation for path indices (must be 0 or 1)
+- Range checking for message limits
+- Proper component instantiation (finally!)
+
+### Known Security Limitations
+
+**⚠️ Things I'm Worried About:**
+- **Trusted Setup**: Using dummy Powers of Tau file (big red flag!)
+- **Mock Verifier**: Always returns true (obviously insecure)
+- **No Input Validation**: Contract doesn't validate proof inputs thoroughly
+- **Secret Storage**: No guidance on secure key management
+- **Replay Protection**: Basic nullifier checking but needs more testing
+
+**🤔 Things I'm Not Sure About:**
+- Are my constraint counts reasonable for this circuit size?
+- Is the merkle tree depth (20) secure enough?
+- Should I be using different hash functions for different purposes?
+- Are there timing attacks I should worry about?
+
+**📚 What I Want to Learn More About:**
+- How to properly validate elliptic curve points
+- Best practices for zkSNARK circuit security
+- Common attack vectors against RLN systems
+- Proper trusted setup procedures
+
+> **Disclaimer**: This is a learning project! Don't use this in production without proper security audits and fixes.
+
+## 🚀 Future Improvements
+
+### Short-term Goals (If I Had More Time)
+
+**Better Testing:**
+- [ ] Add performance benchmarking tests
+- [ ] Test edge cases and error conditions
+- [ ] Add fuzzing tests with random inputs
+- [ ] Measure constraint count scaling
+
+**Documentation:**
+- [ ] Add more code comments explaining the math
+- [ ] Create simple diagrams showing the RLN flow
+- [ ] Write a tutorial for beginners like me
+- [ ] Document all the gotchas I encountered
+
+**Development Experience:**
+- [ ] Add pre-commit hooks for linting
+- [ ] Automate circuit compilation in CI
+- [ ] Add better error messages
+- [ ] Create development scripts for common tasks
+
+### Medium-term Ideas (Dream Features)
+
+**Circuit Optimizations:**
+- [ ] Reduce constraint count where possible
+- [ ] Add support for different tree depths
+- [ ] Implement batch verification
+- [ ] Optimize Poseidon usage
+
+**Production Readiness:**
+- [ ] Proper trusted setup integration
+- [ ] Real verifier contract generation
+- [ ] Comprehensive input validation
+- [ ] Rate limiting per user/epoch tracking
+
+**Developer Experience:**
+- [ ] Browser-based demo interface
+- [ ] Interactive circuit debugger
+- [ ] Performance profiling tools
+- [ ] Better error handling and logging
+
+### Long-term Vision (Maybe Someday)
+
+**Advanced Features:**
+- [ ] Support for different proving systems (PLONK?)
+- [ ] Integration with existing identity systems
+- [ ] Decentralized trusted setup coordination
+- [ ] Cross-chain compatibility
+
+**Research Directions:**
+- [ ] Explore different rate limiting strategies
+- [ ] Investigate privacy-preserving optimizations
+- [ ] Study scaling solutions for large user bases
+- [ ] Research post-quantum security implications
+
+> **Reality Check**: This is a portfolio project, so most of these are just ideas to show I'm thinking about the bigger picture!
+
 ## Development
 
 ### Linting
