@@ -5,97 +5,106 @@ include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/mux1.circom";
 
-template MerkleTreeInclusion(levels) {
+template MerkleTreeInclusionProof(DEPTH) {
     signal input leaf;
-    signal input root;
-    signal input pathElements[levels];
-    signal input pathIndices[levels];
+    signal input pathIndex[DEPTH];
+    signal input pathElements[DEPTH];
 
-    component hashers[levels];
-    component selectors[levels];
+    signal output root;
+
+    component mux[DEPTH];
+    component hashers[DEPTH];
+    signal levelHashes[DEPTH + 1];
     
-    signal currentLevel[levels + 1];
-    currentLevel[0] <== leaf;
+    levelHashes[0] <== leaf;
+    for (var i = 0; i < DEPTH; i++) {
+        pathIndex[i] * (pathIndex[i] - 1) === 0;
 
-    for (var i = 0; i < levels; i++) {
-        selectors[i] = MultiMux1(2);
-        selectors[i].c[0][0] <== currentLevel[i];
-        selectors[i].c[0][1] <== pathElements[i];
-        selectors[i].c[1][0] <== pathElements[i];
-        selectors[i].c[1][1] <== currentLevel[i];
-        selectors[i].s <== pathIndices[i];
-        
+        mux[i] = MultiMux1(2);
+        mux[i].c[0][0] <== levelHashes[i];
+        mux[i].c[0][1] <== pathElements[i];
+        mux[i].c[1][0] <== pathElements[i];
+        mux[i].c[1][1] <== levelHashes[i];
+        mux[i].s <== pathIndex[i];
+
         hashers[i] = Poseidon(2);
-        hashers[i].inputs[0] <== selectors[i].out[0];
-        hashers[i].inputs[1] <== selectors[i].out[1];
-        
-        currentLevel[i + 1] <== hashers[i].out;
+        hashers[i].inputs[0] <== mux[i].out[0];
+        hashers[i].inputs[1] <== mux[i].out[1];
+        levelHashes[i + 1] <== hashers[i].out;
     }
 
-    root === currentLevel[levels];
+    root <== levelHashes[DEPTH];
+}
+
+template RangeCheck(LIMIT_BIT_SIZE) {
+    assert(LIMIT_BIT_SIZE < 253);
+
+    signal input messageId;
+    signal input limit;
+
+    component bits = Num2Bits(LIMIT_BIT_SIZE);
+    bits.in <== messageId;
+    
+    component lt = LessThan(LIMIT_BIT_SIZE);
+    lt.in[0] <== messageId;
+    lt.in[1] <== limit;
+    lt.out === 1;
 }
 
 
-template RLN(levels) {
-    // Public inputs
-    signal input externalNullifier;    // Hash of (epoch, appId)
-    signal input y;                    // Share value: y = a1 * x + a0
-    signal input nullifier;            // Nullifier for rate limiting
-    signal input root;                 // Merkle root of identity tree
-    signal input signalHash;           // Hash of the signal/message
+template RLN(DEPTH, LIMIT_BIT_SIZE) {
+    // Private signals
+    signal input identitySecret;
+    signal input userMessageLimit;
+    signal input messageId;
+    signal input pathElements[DEPTH];
+    signal input identityPathIndex[DEPTH];
 
-    // Private inputs
-    signal input identitySecret;       // a0 - the secret key
-    signal input pathElements[levels];  // Merkle proof elements
-    signal input pathIndices[levels];   // Merkle proof indices
-    signal input messageId;            // Message ID for this epoch
+    // Public signals
+    signal input x;
+    signal input externalNullifier;
 
-    // Intermediate signals
-    signal a1;                         // a1 = Hash(identitySecret, externalNullifier)
-    signal identityCommitment;         // identityCommitment = Hash(identitySecret)
-    signal nullifierComputed;          // nullifier = Hash(a1, messageId)
-    signal yComputed;                  // y = a1 * x + a0 (where x = signalHash)
+    // Outputs
+    signal output y;
+    signal output root;
+    signal output nullifier;
 
-    // Compute a1 = Hash(identitySecret, externalNullifier)
-    component a1Hasher = Poseidon(2);
-    a1Hasher.inputs[0] <== identitySecret;
-    a1Hasher.inputs[1] <== externalNullifier;
-    a1 <== a1Hasher.out;
-
-    // Compute identity commitment = Hash(identitySecret)
     component identityHasher = Poseidon(1);
     identityHasher.inputs[0] <== identitySecret;
-    identityCommitment <== identityHasher.out;
+    signal identityCommitment <== identityHasher.out;
+    
+    component rateHasher = Poseidon(2);
+    rateHasher.inputs[0] <== identityCommitment;
+    rateHasher.inputs[1] <== userMessageLimit;
+    signal rateCommitment <== rateHasher.out;
 
-    // Verify membership in identity tree
-    component merkleProof = MerkleTreeInclusion(levels);
-    merkleProof.leaf <== identityCommitment;
-    merkleProof.root <== root;
-    for (var i = 0; i < levels; i++) {
+    // Membership check
+    component merkleProof = MerkleTreeInclusionProof(DEPTH);
+    merkleProof.leaf <== rateCommitment;
+    for (var i = 0; i < DEPTH; i++) {
+        merkleProof.pathIndex[i] <== identityPathIndex[i];
         merkleProof.pathElements[i] <== pathElements[i];
-        merkleProof.pathIndices[i] <== pathIndices[i];
     }
+    root <== merkleProof.root;
 
-    // Compute nullifier = Hash(a1, messageId)
-    component nullifierHasher = Poseidon(2);
+    // messageId range check
+    component rangeCheck = RangeCheck(LIMIT_BIT_SIZE);
+    rangeCheck.messageId <== messageId;
+    rangeCheck.limit <== userMessageLimit;
+
+    // SSS share calculations
+    component a1Hasher = Poseidon(3);
+    a1Hasher.inputs[0] <== identitySecret;
+    a1Hasher.inputs[1] <== externalNullifier;
+    a1Hasher.inputs[2] <== messageId;
+    signal a1 <== a1Hasher.out;
+    
+    y <== identitySecret + a1 * x;
+
+    // nullifier calculation
+    component nullifierHasher = Poseidon(1);
     nullifierHasher.inputs[0] <== a1;
-    nullifierHasher.inputs[1] <== messageId;
-    nullifierComputed <== nullifierHasher.out;
-
-    // Verify nullifier matches public input
-    nullifier === nullifierComputed;
-
-    // Compute y = a1 * signalHash + identitySecret
-    // This is the RLN share: if two shares are published in the same epoch,
-    // the secret key can be derived
-    yComputed <== a1 * signalHash + identitySecret;
-
-    // Verify y matches public input
-    y === yComputed;
-
-    // Constraint to prevent unconstrained signals
-    signal dummy;
-    dummy <== messageId * messageId;
+    nullifier <== nullifierHasher.out;
 }
 
-component main {public [externalNullifier, y, nullifier, root, signalHash]} = RLN(20);
+component main { public [x, externalNullifier] } = RLN(20, 16);
