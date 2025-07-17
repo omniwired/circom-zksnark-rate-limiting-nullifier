@@ -11,7 +11,7 @@ describe("RLN Anti-Spam System", function () {
     let identity1, identity2, identity3;
     
     const EPOCH_LENGTH = 3600; // 1 hour
-    const MEMBERSHIP_DEPOSIT = ethers.utils.parseEther("1.0");
+    const MEMBERSHIP_DEPOSIT = ethers.parseEther("1.0");
     const APP_ID = "test-app";
     
     before(async function() {
@@ -36,20 +36,19 @@ describe("RLN Anti-Spam System", function () {
         await rln.registerIdentity(identity2);
         await rln.registerIdentity(identity3);
         
-        // Deploy contracts
-        const RLNVerifier = await ethers.getContractFactory("RLNVerifier");
-        verifier = await RLNVerifier.deploy();
+        // Deploy mock verifier for testing
+        const MockVerifier = await ethers.getContractFactory("MockVerifier");
+        verifier = await MockVerifier.deploy();
+        await verifier.waitForDeployment();
         
         const RLNContract = await ethers.getContractFactory("RLN");
         rlnContract = await RLNContract.deploy(
-            verifier.address,
+            await verifier.getAddress(),
             MEMBERSHIP_DEPOSIT,
             EPOCH_LENGTH,
             rln.getRoot()
         );
-        
-        await verifier.deployed();
-        await rlnContract.deployed();
+        await rlnContract.waitForDeployment();
     });
     
     describe("Identity Management", function() {
@@ -70,7 +69,7 @@ describe("RLN Anti-Spam System", function () {
             });
             
             const receipt = await tx.wait();
-            const event = receipt.events.find(e => e.event === "IdentityRegistered");
+            const event = receipt.logs.find(log => log.fragment?.name === "IdentityRegistered");
             
             expect(event).to.not.be.undefined;
             expect(event.args.identityCommitment).to.equal(commitment);
@@ -82,7 +81,7 @@ describe("RLN Anti-Spam System", function () {
             
             await expect(
                 rlnContract.registerIdentity(commitment, {
-                    value: MEMBERSHIP_DEPOSIT.sub(1)
+                    value: MEMBERSHIP_DEPOSIT - 1n
                 })
             ).to.be.revertedWithCustomError(rlnContract, "InsufficientDeposit");
         });
