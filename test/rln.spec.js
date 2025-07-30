@@ -97,7 +97,7 @@ describe("RLN Anti-Spam System", function () {
         });
         
         it("Should generate valid RLN proof", async function() {
-            this.timeout(30000); // Allow time for proof generation
+            this.timeout(30000); // proof gen takes a while
             
             const signal = "Hello, world!";
             const messageId = 0;
@@ -341,7 +341,7 @@ describe("RLN Anti-Spam System", function () {
         it("Should handle random valid inputs", async function() {
             this.timeout(60000);
             
-            const testCount = 10; // Reduced for faster testing
+            const testCount = 10; // keep it small for CI
             const currentEpoch = rln.getCurrentEpoch(EPOCH_LENGTH);
             const externalNullifier = await rln.calculateExternalNullifier(currentEpoch, APP_ID);
             
@@ -351,7 +351,7 @@ describe("RLN Anti-Spam System", function () {
                 
                 try {
                     const proof = await rln.generateProof(
-                        i % 3, // Cycle through identities
+                        i % 3, // cycle through identities
                         randomSignal,
                         externalNullifier,
                         randomMessageId
@@ -442,8 +442,8 @@ describe("RLN Anti-Spam System", function () {
             const duration = endTime - startTime;
             console.log(`⏱️ Identity commitment generation: ${duration.toFixed(2)}ms`);
             
-            // Just making sure it's reasonably fast for a demo
-            expect(duration).to.be.lessThan(1000); // Should be under 1 second
+            // should be reasonably fast
+            expect(duration).to.be.lessThan(1000);
         });
         
         it("Should measure basic proof generation time", async function() {

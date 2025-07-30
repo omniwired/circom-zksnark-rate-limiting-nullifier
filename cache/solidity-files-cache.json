@@ -37,6 +37,41 @@
         "MockVerifier",
         "RLN"
       ]
+    },
+    "/Users/omniwired/Sites/circon-portfolio/project-b/contracts/RLNVerifier.sol": {
+      "lastModificationDate": 1753885490283,
+      "contentHash": "4a18380d6b544cc7e1f10c46a6b0d88e",
+      "sourceName": "contracts/RLNVerifier.sol",
+      "solcConfig": {
+        "version": "0.8.19",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        ">=0.7.0 <0.9.0"
+      ],
+      "artifacts": [
+        "Groth16Verifier"
+      ]
     }
   }
 }
