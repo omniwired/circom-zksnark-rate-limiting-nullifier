@@ -18,6 +18,7 @@ template MerkleTreeInclusionProof(DEPTH) {
     
     levelHashes[0] <== leaf;
     for (var i = 0; i < DEPTH; i++) {
+        // pathIndex must be binary
         pathIndex[i] * (pathIndex[i] - 1) === 0;
 
         mux[i] = MultiMux1(2);
@@ -45,6 +46,7 @@ template RangeCheck(LIMIT_BIT_SIZE) {
     component bits = Num2Bits(LIMIT_BIT_SIZE);
     bits.in <== messageId;
     
+    // make sure messageId < limit
     component lt = LessThan(LIMIT_BIT_SIZE);
     lt.in[0] <== messageId;
     lt.in[1] <== limit;
