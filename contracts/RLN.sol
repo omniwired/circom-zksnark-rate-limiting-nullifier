@@ -83,6 +83,8 @@ contract RLN {
     }
     
     function registerIdentity(uint256 identityCommitment) external payable {
+        require(identityCommitment < FIELD_MODULUS, "Invalid identity commitment");
+        require(identities[identityCommitment].commitment == 0, "Identity already registered");
         if (msg.value < membershipDeposit) revert InsufficientDeposit();
         
         identities[identityCommitment] = Identity({
@@ -108,6 +110,11 @@ contract RLN {
         uint[2][2] memory b,
         uint[2] memory c
     ) external {
+        // Input validation
+        require(signalHash < FIELD_MODULUS, "Invalid signal hash");
+        require(nullifier < FIELD_MODULUS, "Invalid nullifier");
+        require(y < FIELD_MODULUS, "Invalid y coordinate");
+        require(externalNullifier < FIELD_MODULUS, "Invalid external nullifier");
         if (usedNullifiers[nullifier]) revert NullifierAlreadyUsed();
         
         uint256 currentEpoch = getCurrentEpoch();
@@ -151,6 +158,10 @@ contract RLN {
         uint256 nullifier2,
         uint256 identityCommitment
     ) external {
+        require(nullifier1 != nullifier2, "Cannot slash with same nullifier");
+        require(nullifier1 < FIELD_MODULUS && nullifier2 < FIELD_MODULUS, "Invalid nullifiers");
+        require(identityCommitment < FIELD_MODULUS, "Invalid identity commitment");
+        require(usedNullifiers[nullifier1] && usedNullifiers[nullifier2], "Nullifiers not used");
         // Verify both nullifiers are from the same epoch
         uint256 epoch1 = nullifierToEpoch[nullifier1];
         uint256 epoch2 = nullifierToEpoch[nullifier2];
@@ -176,10 +187,11 @@ contract RLN {
         );
         
         // Verify the recovered secret matches the identity commitment
-        // In a real implementation, you'd need to verify:
-        // Hash(recoveredSecret) == identityCommitment
+        uint256 computedCommitment = uint256(keccak256(abi.encodePacked(recoveredSecret))) % FIELD_MODULUS;
+        if (computedCommitment != identityCommitment) revert NoSlashableOffense();
         
         Identity storage identity = identities[identityCommitment];
+        if (identity.commitment == 0) revert NoSlashableOffense(); // Identity doesn't exist
         if (identity.slashed) revert IdentityAlreadySlashed();
         
         // Slash the identity
@@ -191,26 +203,63 @@ contract RLN {
         emit IdentitySlashed(identityCommitment, recoveredSecret);
     }
     
+    // BN254 field modulus
+    uint256 private constant FIELD_MODULUS = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    
     function recoverSecret(
         uint256 x1,
         uint256 y1,
         uint256 x2,
         uint256 y2
-    ) internal pure returns (uint256) {
+    ) public pure returns (uint256) {
         // Solve the system of equations:
-        // y1 = a1 * x1 + a0
-        // y2 = a1 * x2 + a0
-        // Therefore: a0 = (y1 * x2 - y2 * x1) / (x2 - x1)
+        // y1 = a1 * x1 + a0 (mod p)
+        // y2 = a1 * x2 + a0 (mod p)
+        // Therefore: a0 = (y1 * x2 - y2 * x1) * (x2 - x1)^(-1) (mod p)
         
         require(x1 != x2, "Cannot recover secret from same x values");
+        require(x1 < FIELD_MODULUS && x2 < FIELD_MODULUS, "Invalid field elements");
+        require(y1 < FIELD_MODULUS && y2 < FIELD_MODULUS, "Invalid field elements");
         
-        // This is a simplified version - in practice you'd need to handle
-        // modular arithmetic properly for the field
-        uint256 numerator = (y1 * x2) - (y2 * x1);
-        uint256 denominator = x2 - x1;
+        // Calculate numerator: (y1 * x2 - y2 * x1) mod p
+        uint256 term1 = mulmod(y1, x2, FIELD_MODULUS);
+        uint256 term2 = mulmod(y2, x1, FIELD_MODULUS);
+        uint256 numerator = term1 >= term2 ? term1 - term2 : FIELD_MODULUS - (term2 - term1);
         
-        // In a real implementation, you'd need modular inverse
-        return numerator / denominator;
+        // Calculate denominator: (x2 - x1) mod p
+        uint256 denominator = x2 >= x1 ? x2 - x1 : FIELD_MODULUS - (x1 - x2);
+        
+        // Calculate modular inverse and multiply
+        uint256 denominatorInv = modInverse(denominator, FIELD_MODULUS);
+        return mulmod(numerator, denominatorInv, FIELD_MODULUS);
+    }
+    
+    // Extended Euclidean Algorithm for modular inverse
+    function modInverse(uint256 a, uint256 m) internal pure returns (uint256) {
+        require(a < m, "Invalid input for modular inverse");
+        
+        if (a == 0) return 0;
+        
+        int256 m0 = int256(m);
+        int256 x0 = 0;
+        int256 x1 = 1;
+        int256 a_signed = int256(a);
+        
+        while (a_signed > 1) {
+            int256 q = a_signed / m0;
+            int256 t = m0;
+            
+            m0 = a_signed % m0;
+            a_signed = t;
+            t = x0;
+            
+            x0 = x1 - q * x0;
+            x1 = t;
+        }
+        
+        if (x1 < 0) x1 += int256(m);
+        
+        return uint256(x1);
     }
     
     function findMessageByNullifier(uint256 nullifier) internal view returns (uint256) {
