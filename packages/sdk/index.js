@@ -264,7 +264,7 @@ class RLN {
         const witness = {
             // Private inputs
             identitySecret: identity.identity.secret,
-            userMessageLimit: "1", // For now, fixed at 1 message per epoch
+            userMessageLimit: "65536", // Set to maximum value for 16-bit limit
             messageId: messageId.toString(),
             pathElements: merkleProof.pathElements.map(e => e.toString()),
             identityPathIndex: merkleProof.pathIndices.map(i => i.toString()),
