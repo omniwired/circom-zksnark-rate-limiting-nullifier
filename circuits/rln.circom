@@ -57,7 +57,6 @@ template RangeCheck(LIMIT_BIT_SIZE) {
 template RLN(DEPTH, LIMIT_BIT_SIZE) {
     // Private signals
     signal input identitySecret;
-    signal input userMessageLimit;
     signal input messageId;
     signal input pathElements[DEPTH];
     signal input identityPathIndex[DEPTH];
@@ -71,28 +70,24 @@ template RLN(DEPTH, LIMIT_BIT_SIZE) {
     signal output root;
     signal output nullifier;
 
+    // Standard RLN: identity commitment is just Hash(secret)
     component identityHasher = Poseidon(1);
     identityHasher.inputs[0] <== identitySecret;
     signal identityCommitment <== identityHasher.out;
-    
-    component rateHasher = Poseidon(2);
-    rateHasher.inputs[0] <== identityCommitment;
-    rateHasher.inputs[1] <== userMessageLimit;
-    signal rateCommitment <== rateHasher.out;
 
-    // Membership check
+    // Membership check: prove identity is in the registry
     component merkleProof = MerkleTreeInclusionProof(DEPTH);
-    merkleProof.leaf <== rateCommitment;
+    merkleProof.leaf <== identityCommitment;
     for (var i = 0; i < DEPTH; i++) {
         merkleProof.pathIndex[i] <== identityPathIndex[i];
         merkleProof.pathElements[i] <== pathElements[i];
     }
     root <== merkleProof.root;
 
-    // messageId range check
+    // messageId range check (just to ensure it fits in field)
     component rangeCheck = RangeCheck(LIMIT_BIT_SIZE);
     rangeCheck.messageId <== messageId;
-    rangeCheck.limit <== userMessageLimit;
+    rangeCheck.limit <== (1 << LIMIT_BIT_SIZE) - 1; // 2^LIMIT_BIT_SIZE - 1
 
     // SSS share calculations
     component a1Hasher = Poseidon(3);

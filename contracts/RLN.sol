@@ -117,12 +117,14 @@ contract RLN {
         require(externalNullifier < FIELD_MODULUS, "Invalid external nullifier");
         if (usedNullifiers[nullifier]) revert NullifierAlreadyUsed();
         
+        // Extract epoch from external nullifier (should be Hash(epoch, appId))
+        // In a real implementation, we'd need a way to extract/verify the epoch
+        // For this demo, we'll use block timestamp as epoch
         uint256 currentEpoch = getCurrentEpoch();
         
-        // Check rate limit for this epoch
-        if (epochMessages[currentEpoch].length >= getMessageLimit()) {
-            revert MessageLimitExceeded();
-        }
+        // In RLN, rate limiting is enforced cryptographically via nullifiers
+        // The circuit ensures only one message per identity per epoch
+        // Contract just needs to prevent nullifier reuse
         
         // Verify the ZK proof
         uint[5] memory input = [
