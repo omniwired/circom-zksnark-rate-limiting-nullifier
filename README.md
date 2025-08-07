@@ -2,7 +2,7 @@
 
 A **beginner-friendly** Rate-Limited Nullifier (RLN) implementation using **Circom 2**, **Groth16 zk-SNARKs**, and **Ethereum smart contracts** for privacy-preserving spam prevention. This **zero-knowledge proof tutorial** demonstrates anonymous rate limiting with cryptoeconomic incentives.
 
-**🔍 Keywords**: `circom tutorial` `zksnark example` `zero-knowledge proofs` `groth16` `merkle trees` `poseidon hash` `privacy-preserving cryptography` `ethereum` `smart contracts` `anti-spam` `beginner-friendly`
+**Keywords**: `circom tutorial` `zksnark example` `zero-knowledge proofs` `groth16` `merkle trees` `poseidon hash` `privacy-preserving cryptography` `ethereum` `smart contracts` `anti-spam` `beginner-friendly`
 
 > **Portfolio Project Status**: This is a demonstration project showcasing RLN implementation fundamentals. The circuit compiles successfully and core functionality is working, with some test implementations incomplete by design.
 
@@ -59,7 +59,7 @@ The **browser-compatible SDK** provides a complete **zero-knowledge proof toolki
 - **Merkle Tree Operations**: Maintain **sparse Merkle tree** identity registry  
 - **WASM Integration**: **WebAssembly-based** proof generation for browsers
 
-## 🏷️ Topics Covered | Learning Objectives
+## Topics Covered | Learning Objectives
 
 This **zero-knowledge proof tutorial** demonstrates:
 
@@ -253,7 +253,7 @@ This mathematical property enables automatic secret recovery when users violate 
 
 ## Recent Fixes & Status
 
-### ✅ Issues Resolved
+### Issues Resolved
 
 1. **Circuit Compilation Fixed**
    - Updated all templates to use proper Circom 2.x syntax
@@ -275,7 +275,7 @@ This mathematical property enables automatic secret recovery when users violate 
    - Circom 2.2.2 installed and working
    - All npm dependencies resolved
 
-### ⚠️ Known Limitations
+### Known Limitations
 
 This is a portfolio demonstration project with some intentional limitations:
 
@@ -285,14 +285,14 @@ This is a portfolio demonstration project with some intentional limitations:
 - **CLI Demo**: Placeholder implementation
 - **Edge Cases**: Some test scenarios need additional handling
 
-### 📊 Current Metrics
+### Current Metrics
 
 - **Circuit Compilation**: ✅ Successful
 - **Test Suite**: 16/27 tests passing (59%)
 - **Gas Efficiency**: Basic benchmarks working
 - **SDK Functionality**: Core features operational
 
-## 📊 Performance & Benchmarks
+## Performance & Benchmarks
 
 ### Current Performance (What I've Measured So Far)
 
@@ -322,7 +322,7 @@ Things I want to measure when I have more time:
 
 > **Note**: These are just rough measurements from my development machine. Real benchmarking would need proper testing infrastructure!
 
-## 🔒 Security Analysis
+## Security Analysis
 
 ### What I Think I Got Right
 
@@ -339,20 +339,20 @@ Things I want to measure when I have more time:
 
 ### Known Security Limitations
 
-**⚠️ Things I'm Worried About:**
+**Things I'm Worried About:**
 - **Trusted Setup**: Using dummy Powers of Tau file (big red flag!)
 - **Mock Verifier**: Always returns true (obviously insecure)
 - **No Input Validation**: Contract doesn't validate proof inputs thoroughly
 - **Secret Storage**: No guidance on secure key management
 - **Replay Protection**: Basic nullifier checking but needs more testing
 
-**🤔 Things I'm Not Sure About:**
+**Things I'm Not Sure About:**
 - Are my constraint counts reasonable for this circuit size?
 - Is the merkle tree depth (20) secure enough?
 - Should I be using different hash functions for different purposes?
 - Are there timing attacks I should worry about?
 
-**📚 What I Want to Learn More About:**
+**What I Want to Learn More About:**
 - How to properly validate elliptic curve points
 - Best practices for zkSNARK circuit security
 - Common attack vectors against RLN systems
@@ -360,7 +360,7 @@ Things I want to measure when I have more time:
 
 > **Disclaimer**: This is a learning project! Don't use this in production without proper security audits and fixes.
 
-## 🚀 Future Improvements
+## Future Improvements
 
 ### Short-term Goals (If I Had More Time)
 
